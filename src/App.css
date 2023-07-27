@@ -36,3 +36,22 @@
     transform: rotate(360deg);
   }
 }
+
+p {
+  font-family: "Orbitron";
+  text-align: center;
+}
+
+.title {
+  font-family: "Orbitron";
+  text-align: center;
+  width: 100%;  
+}
+
+.amount {
+  font-size: 20px;
+  margin: auto;
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+}
