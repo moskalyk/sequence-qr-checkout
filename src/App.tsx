@@ -99,7 +99,7 @@ const MerchantPage = () => {
       'transfer', [merchantAddress, amount]
     )
 
-    setUrl(`https://falling-field-8737.on.fleek.co/?data=${data}&?network=${network}&?receiver=${merchantAddress}&?tokenAddress=${tokenAddress}?&value=${amount}`)
+    setUrl(`https://crimson-thunder-2272.on.fleek.co/?data=${data}&?network=${network}&?receiver=${merchantAddress}&?tokenAddress=${tokenAddress}?&value=${amount}`)
 
   }
 
