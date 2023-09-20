@@ -21,22 +21,32 @@ function useQuery() {
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
+let network: any = null;
+// const flore20ContractAddress = '0x6efa2ea57b5ea64d088796af72eddc7f5393dd2b'
+
 const MerchantPage = () => {
   const {theme, setTheme} = useTheme()
   const [url, setUrl] = React.useState<any>(null)
-
+  // const [network, setNetwork] = React.useState<any>(null)
   const { bytecode, floreAddress, value } = useParams();
   const [amount, setAmount] = React.useState<any>(null)
   const [tip, setTip] = React.useState<any>()
+  const [init, setInit] = React.useState<any>(false)
+  const [connected, setConnected] = React.useState<any>(false)
+  const [tokenAddress, setTokenAddress] = React.useState<any>('')
+  const [merchantAddress, setMerchantAddress] = React.useState<any>(null)
+
 
   let query = useQuery();
-  sequence.initWallet('polygon')
+  if(query.get('network')){
+    sequence.initWallet({defaultNetwork: query.get('network')!})
+
+  }else {
+    sequence.initWallet({defaultNetwork: 'polygon'})
+  }
 
   const pay = async () => {
       const wallet = sequence.getWallet()
-      const details = await wallet.connect({app: 'pay', networkId: 137 })
-
-      const flore20ContractAddress = '0x6efa2ea57b5ea64d088796af72eddc7f5393dd2b'
     
       // Craft your transaction
       const erc20Interface = new ethers.utils.Interface([
@@ -44,21 +54,33 @@ const MerchantPage = () => {
       ])
 
       const data = erc20Interface.encodeFunctionData(
-        'transfer', [flore20ContractAddress, tip]
+        'transfer', [query.get('receiver'), tip]
       )
 
       const txn1: any = {
-        to: flore20ContractAddress,
+        to: query.get('tokenAddress'),
         data: query.get('data')
       }
 
       const txn2: any = {
-        to: flore20ContractAddress,
+        to: query.get('tokenAddress'),
         data: data
       }
-      const signer = wallet.getSigner()
+
+      const network2chainId: any = {
+        'polygon': 137,
+        'polygon-zkevm': 1101,
+        'arbitrum': 42161,
+        'arbitrum-nova': 42170,
+        'optimism': 10,
+        'bsc': 97,
+        'avalanche': 43114,
+        'base': 8453
+      }
+
+      const signer = wallet.getSigner(network2chainId[query.get('network')!])
       try {
-        const txRes = await signer.sendTransactionBatch([txn1, txn2])
+        const txRes = await signer.sendTransaction([txn1, txn2])
         console.log(txRes)
       }catch(err){
         console.log(err)
@@ -66,7 +88,6 @@ const MerchantPage = () => {
   }
 
   const selectAmount = async (amount: number) => {
-    const flore20ContractAddress = '0x6efa2ea57b5ea64d088796af72eddc7f5393dd2b'
   
     // Craft your transaction
     const erc20Interface = new ethers.utils.Interface([
@@ -74,12 +95,36 @@ const MerchantPage = () => {
     ])
 
     const data = erc20Interface.encodeFunctionData(
-      'transfer', [flore20ContractAddress, amount]
+      'transfer', [merchantAddress, amount]
     )
 
-    setUrl(`https://falling-field-8737.on.fleek.co/?data=${data}&?flore=${flore20ContractAddress}?&value=${amount}`)
+    setUrl(`https://falling-field-8737.on.fleek.co/?data=${data}&?network=${network}&?receiver=${merchantAddress}&?tokenAddress=${tokenAddress}?&value=${amount}`)
 
   }
+  React.useEffect(() => {
+    console.log(network)
+    if(!init){
+      setInterval(async () => {
+        try{
+          const networks = ['polygon','polygon-zkevm','arbitrum','arbitrum-nova','optimism','bsc','avalanche','base']
+          if(networks.includes(network)){
+            const provider = new ethers.providers.JsonRpcProvider(`https://nodes.sequence.app/${network}`);
+            const blockNumber = await provider.getBlockNumber();
+            if(blockNumber){
+              setConnected(true)
+            }
+          } else {
+            setConnected(false)
+          }
+        }catch(err){
+          console.log(err)
+          setConnected(false)
+        }
+      }, 1000 )
+      setInit(true)
+    }
+  }, [network])
+  
   return (
     <div>
       {
@@ -93,7 +138,7 @@ const MerchantPage = () => {
           </Box>
           <br/>
           <br/>
-          <p>Paying {query.get('value')} + <span style={{color: 'blue'}}>{tip ? tip : 0}</span> in _</p>
+          <p>Paying {query.get('value')} + <span style={{color: 'blue'}}>{tip ? tip : 0}</span> in {query.get('tokenAddress')?.slice(0,4)}...</p>
           <br/>
           <p style={{color: 'blue'}}>add tip</p>
           <br/>
@@ -127,11 +172,30 @@ const MerchantPage = () => {
                 {theme == 'light' ? <img src='https://docs.sequence.xyz/img/icons/sequence-composite-light.svg' /> : <img src="https://docs.sequence.xyz/img/icons/sequence-composite-dark.svg" />}
               </Box>
               <br/>
-              <p>Checkout with _</p>
+              <p>Checkout</p>
               <br/>
-              <br/>
+              <p style={{color: 'lime'}}>
+              { connected ? 'connected' : null } </p>
               <br/>
               <Box  justifyContent={'center'}>
+                <Input placeholder="network" style={{textAlign: 'center'}} onChange={(evt: any) => {
+                  if(evt.target.value != ''){
+                    // setNetwork(evt.target.value)
+                    network = evt.target.value
+                  }
+                }} />
+              </Box>
+              <br/>
+              <Box  justifyContent={'center'}>
+                <Input placeholder="token" style={{textAlign: 'center'}} onChange={(evt: any) => {
+                  if(evt.target.value != ''){
+                    setTokenAddress(evt.target.value)
+                  }
+                }} />
+              </Box>
+              <br/>
+              <Box  justifyContent={'center'}>
+
                 <Input placeholder="$0" style={{textAlign: 'center'}} onChange={(evt: any) => {
                   if(evt.target.value != ''){
                     selectAmount(evt.target.value)
