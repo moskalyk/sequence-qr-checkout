@@ -47,8 +47,11 @@ const MerchantPage = () => {
   }, [])
 
   const pay = async () => {
-      const wallet = sequence.getWallet()
+      const wallet = await sequence.getWallet()
+      const details = await wallet.connect({app:'qr checkout'})
     
+      if(details.connected){
+
       // Craft your transaction
       const erc20Interface = new ethers.utils.Interface([
         'function transfer(address _to, uint256 _value) public returns (bool)'
@@ -85,7 +88,9 @@ const MerchantPage = () => {
         console.log(txRes)
       }catch(err){
         console.log(err)
+        alert(err)
       }
+    }
   }
 
   const selectAmount = async (amount: number) => {
