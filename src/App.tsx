@@ -22,12 +22,9 @@ function useQuery() {
 }
 
 let network: any = null;
-// const flore20ContractAddress = '0x6efa2ea57b5ea64d088796af72eddc7f5393dd2b'
-
 const MerchantPage = () => {
   const {theme, setTheme} = useTheme()
   const [url, setUrl] = React.useState<any>(null)
-  // const [network, setNetwork] = React.useState<any>(null)
   const { bytecode, floreAddress, value } = useParams();
   const [amount, setAmount] = React.useState<any>(null)
   const [tip, setTip] = React.useState<any>()
@@ -35,15 +32,19 @@ const MerchantPage = () => {
   const [connected, setConnected] = React.useState<any>(false)
   const [tokenAddress, setTokenAddress] = React.useState<any>('')
   const [merchantAddress, setMerchantAddress] = React.useState<any>(null)
-
+  const [test, setTest] = React.useState<any>(null)
 
   let query = useQuery();
-  if(query.get('network')){
-    sequence.initWallet({defaultNetwork: query.get('network')!})
 
-  }else {
-    sequence.initWallet({defaultNetwork: 'polygon'})
-  }
+  React.useEffect(() => {
+    if(query.get('network')){
+      setTest(query.get('network'))
+      sequence.initWallet({defaultNetwork: query.get('network')!})
+    }else {
+      setTest(query.get('network'))
+      sequence.initWallet({defaultNetwork: 'polygon'})
+    }
+  }, [])
 
   const pay = async () => {
       const wallet = sequence.getWallet()
@@ -77,7 +78,7 @@ const MerchantPage = () => {
         'avalanche': 43114,
         'base': 8453
       }
-
+      alert(network2chainId[query.get('network')!])
       const signer = wallet.getSigner(network2chainId[query.get('network')!])
       try {
         const txRes = await signer.sendTransaction([txn1, txn2])
@@ -101,6 +102,15 @@ const MerchantPage = () => {
     setUrl(`https://falling-field-8737.on.fleek.co/?data=${data}&?network=${network}&?receiver=${merchantAddress}&?tokenAddress=${tokenAddress}?&value=${amount}`)
 
   }
+
+  const login = async () => {
+    const wallet = sequence.getWallet()
+    const details = await wallet.connect({app: 'qr checkout'})
+    if(details.connected){
+      setMerchantAddress(details.session?.accountAddress)
+    }
+  }
+
   React.useEffect(() => {
     console.log(network)
     if(!init){
@@ -172,39 +182,54 @@ const MerchantPage = () => {
                 {theme == 'light' ? <img src='https://docs.sequence.xyz/img/icons/sequence-composite-light.svg' /> : <img src="https://docs.sequence.xyz/img/icons/sequence-composite-dark.svg" />}
               </Box>
               <br/>
-              <p>Checkout</p>
+              <p>Checkout {test}</p>
               <br/>
-              <p style={{color: 'lime'}}>
-              { connected ? 'connected' : null } </p>
-              <br/>
-              <Box  justifyContent={'center'}>
-                <Input placeholder="network" style={{textAlign: 'center'}} onChange={(evt: any) => {
-                  if(evt.target.value != ''){
-                    // setNetwork(evt.target.value)
-                    network = evt.target.value
-                  }
-                }} />
-              </Box>
-              <br/>
-              <Box  justifyContent={'center'}>
-                <Input placeholder="token" style={{textAlign: 'center'}} onChange={(evt: any) => {
-                  if(evt.target.value != ''){
-                    setTokenAddress(evt.target.value)
-                  }
-                }} />
-              </Box>
-              <br/>
-              <Box  justifyContent={'center'}>
-
-                <Input placeholder="$0" style={{textAlign: 'center'}} onChange={(evt: any) => {
-                  if(evt.target.value != ''){
-                    selectAmount(evt.target.value)
-                  }
-                }} />
-              </Box>
-              <br/>
-              <br/>
-              <QRCodeGenerator url={url} />
+              {
+                merchantAddress ? 
+                <>
+                <p style={{color: 'lime'}}>
+                { connected ? 'connected' : null } </p>
+                <br/>
+                <Box  justifyContent={'center'}>
+                  <Input placeholder="network" style={{textAlign: 'center'}} onChange={(evt: any) => {
+                    if(evt.target.value != ''){
+                      // setNetwork(evt.target.value)
+                      network = evt.target.value
+                    }
+                  }} />
+                </Box>
+                <br/>
+                <Box  justifyContent={'center'}>
+                  <Input placeholder="token" style={{textAlign: 'center'}} onChange={(evt: any) => {
+                    if(evt.target.value != ''){
+                      setTokenAddress(evt.target.value)
+                    }
+                  }} />
+                </Box>
+                <br/>
+                <Box  justifyContent={'center'}>
+  
+                  <Input placeholder="$0" style={{textAlign: 'center'}} onChange={(evt: any) => {
+                    if(evt.target.value != ''){
+                      selectAmount(evt.target.value)
+                    }
+                  }} />
+                </Box>
+                <br/>
+                <br/>
+                <QRCodeGenerator url={url} />
+                </>
+                : 
+                <>
+                <br/>
+                <p>create payments direct from a qr code</p>
+                <br/>
+                <br/>
+                  <Box justifyContent={'center'}>
+                    <Button onClick={() => login()} label="Login with Sequence"/>
+                  </Box>
+                </>
+              }
           </>
       }
     </div>
