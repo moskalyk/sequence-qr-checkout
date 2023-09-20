@@ -142,6 +142,7 @@ const MerchantPage = () => {
         <>
           <br/>
           <br/>
+          <p style={{color: 'lime'}}> {test}</p>
           <br/>
           <Box justifyContent={'center'}>
             {theme == 'light' ? <img src='https://docs.sequence.xyz/img/icons/sequence-composite-light.svg' /> : <img src="https://docs.sequence.xyz/img/icons/sequence-composite-dark.svg" />}
@@ -182,7 +183,7 @@ const MerchantPage = () => {
                 {theme == 'light' ? <img src='https://docs.sequence.xyz/img/icons/sequence-composite-light.svg' /> : <img src="https://docs.sequence.xyz/img/icons/sequence-composite-dark.svg" />}
               </Box>
               <br/>
-              <p>Checkout {test}</p>
+              <p>Checkout</p>
               <br/>
               {
                 merchantAddress ? 
