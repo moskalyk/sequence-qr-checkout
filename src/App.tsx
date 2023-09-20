@@ -79,7 +79,7 @@ const MerchantPage = () => {
         'base': 8453
       }
       alert(network2chainId[query.get('network')!])
-      const signer = wallet.getSigner(network2chainId[query.get('network')!])
+      const signer = await wallet.getSigner(network2chainId[query.get('network')!])
       try {
         const txRes = await signer.sendTransaction([txn1, txn2])
         console.log(txRes)
